@@ -6,6 +6,7 @@
       <div class="canvas-area">
         <SpectraChart />
         <ClusterScatter />
+        <HeatmapChart />
       </div>
     </div>
     <MatchResultPanel />
@@ -17,6 +18,7 @@ import AppHeader from './components/AppHeader.vue'
 import ControlSidebar from './components/ControlSidebar.vue'
 import SpectraChart from './components/SpectraChart.vue'
 import ClusterScatter from './components/ClusterScatter.vue'
+import HeatmapChart from './components/HeatmapChart.vue'
 import MatchResultPanel from './components/MatchResultPanel.vue'
 </script>
 

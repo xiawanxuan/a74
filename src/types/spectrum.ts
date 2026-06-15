@@ -69,3 +69,17 @@ export interface AppSettings {
   threshold: number
   kClusters: number
 }
+
+export interface HeatmapDiffRow {
+  mineralName: string
+  mineralCategory: string
+  spectrumId: string
+  similarity: number
+  diffs: number[]
+}
+
+export interface HeatmapDiffData {
+  bins: number[]
+  rows: HeatmapDiffRow[]
+  maxAbsDiff: number
+}

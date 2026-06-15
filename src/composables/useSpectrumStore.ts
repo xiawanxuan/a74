@@ -5,12 +5,14 @@ import type {
   MatchResult,
   ClusterPoint,
   SearchHistoryItem,
-  AppSettings
+  AppSettings,
+  HeatmapDiffData
 } from '@/types/spectrum'
 import { spectrumMatcher } from '@/utils/spectrumMatcher'
 import { generateSpectraLibrary } from '@/data/mineralTemplates'
 import { localStorageCache } from '@/utils/localStorageCache'
 import { eventBus, EVENTS } from '@/utils/eventBus'
+import { computeSpectralDiffs } from '@/utils/heatmapDiff'
 
 const librarySpectra = ref<RamanSpectrum[]>([])
 const uploadedSpectrum = ref<RamanSpectrum | null>(null)
@@ -21,6 +23,7 @@ const isMatching = ref(false)
 const matchDuration = ref(0)
 const selectedSpectrumId = ref<string | null>(null)
 const hoveredSpectrumId = ref<string | null>(null)
+const heatmapData = ref<HeatmapDiffData | null>(null)
 
 const settings = ref<AppSettings>(localStorageCache.loadSettings())
 const searchHistory = ref<SearchHistoryItem[]>(localStorageCache.loadSearchHistory())
@@ -59,6 +62,7 @@ export function useSpectrumStore() {
       matchResults.value = []
       clusterPoints.value = []
       uploadedClusterPoint.value = null
+      heatmapData.value = null
       eventBus.emit(EVENTS.SPECTRUM_CLEARED)
     }
   }
@@ -107,6 +111,17 @@ export function useSpectrumStore() {
       results: matchResults.value,
       duration: matchDuration.value
     })
+
+    if (uploadedSpectrum.value && matchResults.value.length > 0) {
+      heatmapData.value = computeSpectralDiffs(
+        uploadedSpectrum.value,
+        matchResults.value.slice(0, 20),
+        filter.value,
+        100
+      )
+    } else {
+      heatmapData.value = null
+    }
   }
 
   const updateFilter = (newFilter: Partial<SpectrumFilter>) => {
@@ -202,6 +217,7 @@ export function useSpectrumStore() {
     matchDuration,
     selectedSpectrumId,
     hoveredSpectrumId,
+    heatmapData,
     settings,
     filter,
     threshold,

@@ -8,12 +8,22 @@ export interface MatchingOptions {
   numBins: number
 }
 
+function isFilterEqual(a: SpectrumFilter, b: SpectrumFilter): boolean {
+  return (
+    a.wavelengthMin === b.wavelengthMin &&
+    a.wavelengthMax === b.wavelengthMax &&
+    a.intensityNormalize === b.intensityNormalize
+  )
+}
+
 export class SpectrumMatcher {
   private library: RamanSpectrum[] = []
   private kmeans: KMeansCluster | null = null
   private vectors: number[][] = []
   private clusterLabels: number[] = []
   private isBuilt = false
+  private lastFilter: SpectrumFilter | null = null
+  private lastKClusters: number = 0
 
   public setLibrary(library: RamanSpectrum[]): void {
     this.library = library
@@ -21,6 +31,8 @@ export class SpectrumMatcher {
     this.kmeans = null
     this.vectors = []
     this.clusterLabels = []
+    this.lastFilter = null
+    this.lastKClusters = 0
   }
 
   public buildIndex(filter: SpectrumFilter, kClusters: number, numBins: number = 100): void {
@@ -36,6 +48,8 @@ export class SpectrumMatcher {
     const clusterTime = performance.now()
 
     this.isBuilt = true
+    this.lastFilter = { ...filter }
+    this.lastKClusters = kClusters
     console.debug(
       `Index built: vectors=${(vectorTime - startTime).toFixed(1)}ms, ` +
         `clustering=${(clusterTime - vectorTime).toFixed(1)}ms, ` +
@@ -54,7 +68,10 @@ export class SpectrumMatcher {
   } {
     const startTime = performance.now()
 
-    if (!this.isBuilt || this.kmeans === null) {
+    const filterChanged = this.lastFilter === null || !isFilterEqual(this.lastFilter, options.filter)
+    const kChanged = this.lastKClusters !== options.kClusters
+
+    if (!this.isBuilt || this.kmeans === null || filterChanged || kChanged) {
       this.buildIndex(options.filter, options.kClusters, options.numBins)
     }
 
@@ -264,6 +281,12 @@ export class SpectrumMatcher {
 
   public isIndexBuilt(): boolean {
     return this.isBuilt
+  }
+
+  public invalidateIndex(): void {
+    this.isBuilt = false
+    this.lastFilter = null
+    this.lastKClusters = 0
   }
 }
 

@@ -115,6 +115,7 @@ export function useSpectrumStore() {
     eventBus.emit(EVENTS.FILTER_CHANGED, settings.value.filter)
 
     if (uploadedSpectrum.value) {
+      spectrumMatcher.buildIndex(filter.value, kClusters.value, 100)
       runMatching()
     }
   }
